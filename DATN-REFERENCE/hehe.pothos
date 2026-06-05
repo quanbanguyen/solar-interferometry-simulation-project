@@ -1,0 +1,15 @@
+{
+    "config": {
+        "graphHeight": 1080,
+        "graphWidth": 1920
+    },
+    "pages": [
+        {
+            "docked": true,
+            "graphObjects": [
+            ],
+            "pageName": "Main",
+            "selected": true
+        }
+    ]
+}

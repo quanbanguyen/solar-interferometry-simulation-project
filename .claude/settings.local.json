@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(& python -c \"import numpy as np; d = np.load\\(r'E:\\\\1A DATN REAL\\\\primary beam\\\\UFRAME_primary_beam_610MHz.npz'\\); print\\('Keys:', list\\(d.keys\\(\\)\\)\\); print\\('freq_MHz:', float\\(d['freq_MHz']\\)\\); print\\('gain_max_dBi:', float\\(d['gain_max_dBi']\\)\\); print\\('gain_dBi shape:', d['gain_dBi'].shape\\); print\\('gain_dBi min/max:', round\\(float\\(d['gain_dBi'].min\\(\\)\\),2\\), round\\(float\\(d['gain_dBi'].max\\(\\)\\),2\\)\\)\")",
+      "PowerShell($py = \\(Get-Command python3 -ErrorAction SilentlyContinue\\).Source; if \\(-not $py\\) { $py = \\(Get-Command python -ErrorAction SilentlyContinue\\).Source }; Write-Output \"Python: $py\")",
+      "PowerShell(conda run -n base python -c \"import numpy as np; print\\('ok'\\)\" 2>&1)"
+    ]
+  }
+}

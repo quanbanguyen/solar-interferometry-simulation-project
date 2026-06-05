@@ -1,0 +1,51 @@
+CM ================================================================
+CM Yagi-Uda antenna for solar radio observation at 610 MHz
+CM Reconstructed from HFSS design table + photo + physical inspection
+CM 
+CM STRUCTURE (back -> front):
+CM   - Reflector frame: 4 bars in U-shape (vertical plane, all at Y=0)
+CM       * 2 inner bars at z = +-10mm  (closer to boom axis)
+CM       * 2 outer bars at z = +-40mm  (raised/lowered 30mm relative to inner)
+CM       Looking from the front (+Y), the 4 bars form a "U" or square frame
+CM   - Driven element: folded dipole (L=210mm, fold height 44mm)
+CM   - Directors:      6 bars (L=210mm) along the boom
+CM   Total: 14 wires (4 refl + 4 dipole wires + 6 directors)
+CM 
+CM COORDINATE SYSTEM:
+CM   X axis = element length (horizontal rod direction)
+CM   Y axis = along the boom; beam points toward +Y (front)
+CM   Z axis = vertical (the U-shape opens in this plane)
+CM 
+CM Note: in 4NEC2 default view, rotate to look down -Y axis
+CM       to see the U/rectangular frame of the reflector cluster.
+CM ================================================================
+CM ----- REFLECTOR FRAME: 4 bars at Y=0, U-shape in Z -----
+CM      L=300mm, r=3.5mm
+CM      Outer bars (z=+-40mm) raised; inner bars (z=+-10mm) closer to axis
+CM ----- DRIVEN ELEMENT: folded dipole, L=210mm, fold 44mm, Y=98mm -----
+CM ----- DIRECTORS: 6 bars, L=210mm, r=3.5mm -----
+CM ----- Feed: voltage source on front rod of folded dipole (Tag 5, seg 11) -----
+CM ----- Frequency: 610 MHz -----
+CM ----- Radiation pattern: full 3D, theta 0..180 phi 0..360 step 5 deg -----
+CE
+GW	1	21	-0.150	0.020	0.040	0.150	0.020	0.040	0.0035
+GW	2	21	-0.150	0	0.010	0.150	0	0.010	0.0035
+GW	3	21	-0.150	0	-0.010	0.150	0	-0.010	0.0035
+GW	4	21	-0.150	0.020	-0.040	0.150	0.020	-0.040	0.0035
+GW	5	21	-0.105	0.098	0	0.105	0.098	0	0.0020
+GW	6	21	-0.105	0.142	0	0.105	0.142	0	0.0020
+GW	7	3	0.105	0.098	0	0.105	0.142	0	0.0020
+GW	8	3	-0.105	0.098	0	-0.105	0.142	0	0.0020
+GW	9	21	-0.105	0.180	0	0.105	0.180	0	0.0035
+GW	10	21	-0.105	0.220	0	0.105	0.220	0	0.0035
+GW	11	21	-0.105	0.270	0	0.105	0.270	0	0.0035
+GW	12	21	-0.105	0.320	0	0.105	0.320	0	0.0035
+GW	13	21	-0.105	0.386	0	0.105	0.386	0	0.0035
+GW	14	21	-0.105	0.455	0	0.105	0.455	0	0.0035
+GE	0
+GN	-1
+EK
+EX	0	5	11	0	1.0	0	0
+FR	0	0	0	0	610	0
+RP	0	181	73	1000	0.0	0.0	1.0	5.0		
+EN

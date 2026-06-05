@@ -1,0 +1,5 @@
+*.npz
+*.pkl
+Cell_H_Data/
+Cell_I_Data/
+.ipynb_checkpoints/
