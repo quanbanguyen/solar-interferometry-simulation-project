@@ -229,17 +229,37 @@ def forward_visibilities(config: ArrayConfig, obs: Observation, sky,
 # ════════════════════════════════════════════════════════════════════════════
 # 7. IMAGER — dirty image + PSF (DFT trực tiếp, fringe-stop bằng w-term)
 # ════════════════════════════════════════════════════════════════════════════
-def make_dirty_image(u, v, w, vis, fov_deg=3.0, grid=256, do_fringe_stop=True):
-    """Dirty image qua DFT trực tiếp + Hermitian. Trả về (image, l_deg, m_deg).
-    do_fringe_stop=True: nhân exp(+2πi·w) để dồn nguồn (đang ở phase center) về (0,0)
-    — cần cho chuỗi điện áp; forward model đã ở tâm nên có thể tắt."""
+def make_dirty_image(u, v, w, vis, fov_deg=3.0, grid=256, do_fringe_stop=True,
+                     block=8192, time_step=1, dtype=np.complex64):
+    """Dirty image qua DFT trực tiếp + Hermitian, tính THEO KHỐI để RAM thấp.
+    Tránh mảng trung gian chục GB của einsum 'k,kj,ki->ij' (nguyên nhân tràn
+    pagefile ổ C). Trả về (image, l_deg, m_deg).
+    do_fringe_stop=True: nhân exp(+2πi·w) để dồn nguồn (ở phase center) về (0,0)
+      — cần cho chuỗi điện áp; forward model đã ở tâm nên đặt False.
+    block      : số visibility xử lý mỗi khối (nhỏ hơn -> nhẹ RAM hơn).
+    time_step  : >1 thì lấy thưa thời gian (trục 0) -> nhanh hơn cho lúc thử nghiệm.
+    dtype      : complex64 (mặc định, nửa RAM) hoặc complex128 nếu cần chính xác hơn."""
     l = np.radians(np.linspace(-fov_deg / 2, fov_deg / 2, grid))   # East-West
     m = np.radians(np.linspace(-fov_deg / 2, fov_deg / 2, grid))   # North-South
-    uf, vf = u.ravel(), v.ravel()
-    Vf = (vis * np.exp(2j * np.pi * w)).ravel() if do_fringe_stop else vis.ravel()
-    exp_ul = np.exp(2j * np.pi * np.outer(uf, l))                  # (K, grid)
-    exp_vm = np.exp(2j * np.pi * np.outer(vf, m))                  # (K, grid)
-    dirty = np.einsum('k,kj,ki->ij', Vf, exp_ul, exp_vm)          # (m, l)
+
+    if time_step > 1:                                              # lấy thưa thời gian
+        u = u[::time_step]; v = v[::time_step]
+        w = w[::time_step]; vis = vis[::time_step]
+
+    uf = u.ravel().astype(np.float64)
+    vf = v.ravel().astype(np.float64)
+    Vf = ((vis * np.exp(2j * np.pi * w)) if do_fringe_stop else vis).ravel().astype(dtype)
+
+    # dirty[i,j] = Σ_k Vf[k]·exp(2πi·u_k·l_j)·exp(2πi·v_k·m_i)
+    #            = exp_vm.T @ (Vf · exp_ul)  — nhân ma trận theo khối, KHÔNG tạo mảng (K×grid×grid)
+    dirty = np.zeros((grid, grid), dtype=np.complex128)            # tích luỹ chính xác
+    K = Vf.size
+    for s in range(0, K, block):
+        e = min(s + block, K)
+        eu = np.exp(2j * np.pi * np.outer(uf[s:e], l)).astype(dtype)   # (blk, grid_l) ~ vài MB
+        ev = np.exp(2j * np.pi * np.outer(vf[s:e], m)).astype(dtype)   # (blk, grid_m)
+        dirty += (ev.T @ (Vf[s:e, None] * eu)).astype(np.complex128)
+
     img = 2.0 * np.real(dirty)
     peak = np.max(np.abs(img))
     if peak > 0:
@@ -247,10 +267,12 @@ def make_dirty_image(u, v, w, vis, fov_deg=3.0, grid=256, do_fringe_stop=True):
     return img, np.degrees(l), np.degrees(m)
 
 
-def synthesized_beam(u, v, w, fov_deg=3.0, grid=256, do_fringe_stop=True):
+def synthesized_beam(u, v, w, fov_deg=3.0, grid=256, do_fringe_stop=True,
+                     block=8192, time_step=1, dtype=np.complex64):
     """PSF = dirty image của nguồn điểm đơn vị tại tâm (đo hình dạng búp tổng hợp)."""
-    ones = np.ones(u.shape, dtype=np.complex128)
-    return make_dirty_image(u, v, w, ones, fov_deg, grid, do_fringe_stop)
+    ones = np.ones(u.shape, dtype=dtype)
+    return make_dirty_image(u, v, w, ones, fov_deg, grid, do_fringe_stop,
+                            block, time_step, dtype)
 
 
 # ════════════════════════════════════════════════════════════════════════════

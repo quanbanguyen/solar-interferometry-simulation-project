@@ -5,8 +5,8 @@ import csv
 # KHÔNG CẦN CÀI ĐẶT THÊM THƯ VIỆN
 # ==========================================
 
-input_file = r'E:\APSIN\solar_signal.txt.txt'  # File gốc của bạn
-output_file = r'E:\APSIN\xlsx\solar_signal_cleaned.csv' # File xuất ra (Mở bằng Excel)
+input_file = r'E:\1A DATN REAL\raw_signal_from_sws'  # File gốc của bạn
+output_file = r'E:\1A DATN REAL\file_excel_du_lieu.csv' # File xuất ra (Mở bằng Excel)
 
 data_rows = []
 error_count = 0
