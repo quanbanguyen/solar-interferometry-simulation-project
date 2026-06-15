@@ -320,8 +320,8 @@ def from_enu(positions_enu, name="custom"):
 
 # Hai CASE theo yêu cầu ----------------------------------------------------------
 def preset_compact():
-    """CASE 1 — bám dự án ngoài trời: mảng Đông-Tây 4 anten [0,5,10,15] m."""
-    return linear(4, 5.0, az_deg=90.0, name="compact_outdoor_EW")
+    """CASE 1 — bám dự án ngoài trời: mảng Đông-Tây 4 anten [0,8,16,24] m."""
+    return linear(4, 8.0, az_deg=90.0, name="compact_outdoor_EW")
 
 
 def preset_extended():
