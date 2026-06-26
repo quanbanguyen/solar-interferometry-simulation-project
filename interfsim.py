@@ -74,7 +74,7 @@ class Observation:
     lat_deg: float          # vĩ độ trạm (Hanoi ~ +21.0; Learmonth ~ -21.8)
     dec_deg: float          # xích vĩ Mặt Trời
     fc_hz: float = 610e6
-    H_deg: np.ndarray = field(default_factory=lambda: np.linspace(-84.2, 84.2, 600))
+    H_deg: np.ndarray = field(default_factory=lambda: np.linspace(-90.0, 90.0, 600))
 
     @property
     def lam(self) -> float:

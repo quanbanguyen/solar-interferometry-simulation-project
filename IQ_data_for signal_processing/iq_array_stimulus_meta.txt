@@ -1,6 +1,6 @@
 # IQ Array Stimulus - Metadata
-# Generated : 2026-06-12T08:59:21.679019 UTC
-# Data day  : 27-3-2025   Freq : F610   Source : SWS Learmonth RSTN
+# Generated : 2026-06-26T04:13:28.427870 UTC
+# Data day  : 20-3-2025   Freq : F610   Source : SWS Learmonth RSTN
 #
 n_samples     = 50000
 num_antennas  = 4
@@ -8,12 +8,12 @@ array         = compact_outdoor_EW
 fc_hz         = 6.100000e+08
 bw_hz         = 1.000000e+06
 t_sys_k       = 150.00
-r_load_ohm    = 50.0
+r_load_ohm    = 75.0
 aeff_m2       = 1.705186e-01
-scale_factor  = 2.8274848069e+10
-max_val_volt  = 1.1588744852e-06
-v_noise_volt  = 3.2178974347e-07
-snr_peak_db   = 14.5326
-dec_sun_rad   = 0.251327
+scale_factor  = 2.0262904273e+10
+max_val_volt  = 1.6170929674e-06
+v_noise_volt  = 3.9411033798e-07
+snr_peak_db   = 18.3556
+dec_sun_rad   = 0.000000
 bits          = 16
 format        = (I Q) x 4 anten, hex 16-bit 2's complement

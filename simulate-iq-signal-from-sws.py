@@ -44,7 +44,7 @@ amplitude_envelope = np.sqrt(sfu_data)
 
 # Thông số vật lý của trạm giao thoa
 fc = 610e6              
-baseline = 15.0         
+baseline = 24.0
 theta_deg = 30.0        
 c = 299792458.0
 

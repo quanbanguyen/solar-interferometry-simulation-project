@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mô phỏng Giao thoa Vô tuyến Thiên văn</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#e6edf3;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{background:linear-gradient(135deg,#1a2332,#0d1117);border-bottom:1px solid #21262d;padding:10px 18px;display:flex;align-items:center;gap:14px;flex-shrink:0}
+header h1{font-size:15px;font-weight:600;color:#58a6ff;letter-spacing:.3px}
+header p{font-size:11px;color:#8b949e;margin-top:1px}
+.badge{background:#21262d;border:1px solid #30363d;border-radius:12px;padding:2px 8px;font-size:10px;color:#79c0ff}
+#layout{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ── */
+#sidebar{width:290px;background:#161b22;border-right:1px solid #21262d;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column;gap:0}
+.sec{border-bottom:1px solid #21262d;padding:12px 14px}
+.sec h2{font-size:11px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sec h2 span{font-size:14px}
+label{display:block;font-size:11px;color:#8b949e;margin-bottom:4px;margin-top:8px}
+label:first-of-type{margin-top:0}
+input[type=range]{width:100%;accent-color:#58a6ff;cursor:pointer;height:4px}
+input[type=number],input[type=text],select{width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;padding:5px 8px;font-size:12px;outline:none}
+input[type=number]:focus,select:focus{border-color:#58a6ff}
+.row{display:flex;gap:6px;align-items:center}
+.row input[type=number]{flex:1}
+.row .unit{font-size:11px;color:#8b949e;white-space:nowrap}
+.val-display{font-size:12px;color:#58a6ff;font-weight:600;min-width:52px;text-align:right}
+.btn{background:#21262d;border:1px solid #30363d;border-radius:6px;color:#e6edf3;padding:5px 10px;font-size:11px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:hover{background:#30363d;border-color:#58a6ff}
+.btn.primary{background:#1f6feb;border-color:#388bfd;color:#fff}
+.btn.primary:hover{background:#388bfd}
+.btn.danger{background:#6e1a1a;border-color:#f85149;color:#f85149}
+.btn.sm{padding:3px 7px;font-size:10px}
+.file-btn{display:block;width:100%;text-align:center;background:#21262d;border:1px dashed #30363d;border-radius:6px;padding:8px;font-size:11px;color:#8b949e;cursor:pointer;transition:all .15s}
+.file-btn:hover{border-color:#58a6ff;color:#58a6ff}
+input[type=file]{display:none}
+.status{font-size:10px;padding:4px 7px;border-radius:4px;margin-top:6px;line-height:1.4}
+.status.ok{background:#0f2a1a;color:#3fb950;border:1px solid #2ea043}
+.status.err{background:#2a0f0f;color:#f85149;border:1px solid #da3633}
+.status.info{background:#0d1f2d;color:#79c0ff;border:1px solid #1f6feb}
+
+/* antenna table */
+#ant-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px}
+#ant-table th{color:#8b949e;font-weight:500;padding:3px 4px;text-align:left;border-bottom:1px solid #21262d}
+#ant-table td{padding:3px 4px}
+#ant-table input{width:64px;padding:3px 5px;font-size:11px}
+.ant-color{width:10px;height:10px;border-radius:50%;display:inline-block}
+#baselines-list{font-size:10px;color:#8b949e;line-height:1.7;margin-top:6px}
+#baselines-list span{color:#e6edf3}
+
+/* freq grid */
+.freq-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;margin-top:4px}
+.freq-btn{background:#21262d;border:1px solid #30363d;border-radius:4px;color:#8b949e;padding:3px 0;font-size:10px;cursor:pointer;text-align:center;transition:all .15s}
+.freq-btn:hover,.freq-btn.active{background:#1f6feb22;border-color:#1f6feb;color:#58a6ff}
+
+/* ── MAIN ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#tabs{display:flex;border-bottom:1px solid #21262d;background:#161b22;flex-shrink:0;padding:0 10px}
+.tab{padding:8px 14px;font-size:12px;color:#8b949e;cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.tab:hover{color:#e6edf3}
+.tab.active{color:#58a6ff;border-bottom-color:#58a6ff}
+#panels{flex:1;overflow:hidden;position:relative}
+.panel{position:absolute;inset:0;padding:10px;display:none;overflow:auto}
+.panel.active{display:flex;flex-direction:column;gap:8px}
+.plot-box{flex:1;min-height:200px;background:#0d1117;border:1px solid #21262d;border-radius:8px;overflow:hidden}
+.plot-row{display:flex;gap:8px;flex:1;min-height:0}
+.plot-half{flex:1;min-width:0;background:#0d1117;border:1px solid #21262d;border-radius:8px;overflow:hidden}
+.info-card{background:#161b22;border:1px solid #21262d;border-radius:8px;padding:12px 14px}
+.info-card h3{font-size:12px;color:#58a6ff;margin-bottom:6px}
+.info-card p,.info-card li{font-size:11px;color:#8b949e;line-height:1.65}
+.info-card ul{padding-left:16px}
+.info-card code{background:#21262d;border-radius:3px;padding:1px 4px;font-size:10px;color:#79c0ff;font-family:monospace}
+.stat-row{display:flex;flex-wrap:wrap;gap:8px;flex-shrink:0}
+.stat{background:#161b22;border:1px solid #21262d;border-radius:6px;padding:6px 10px;font-size:11px;min-width:110px}
+.stat .val{font-size:14px;font-weight:700;color:#58a6ff}
+.stat .lbl{color:#8b949e;font-size:10px}
+.fringe-table{width:100%;border-collapse:collapse;font-size:11px;flex-shrink:0}
+.fringe-table th{background:#161b22;color:#8b949e;padding:5px 8px;text-align:left;font-weight:500;border-bottom:1px solid #21262d}
+.fringe-table td{padding:5px 8px;border-bottom:1px solid #21262d22;color:#e6edf3}
+.fringe-table tr:hover td{background:#21262d33}
+.render-bar{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.render-bar span{font-size:11px;color:#8b949e}
+.spinner{display:none;width:14px;height:14px;border:2px solid #30363d;border-top-color:#58a6ff;border-radius:50%;animation:spin .6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>&#x1F4E1; Mô phỏng Giao thoa Vô tuyến Thiên văn</h1>
+    <p>Solar radio interferometry educational simulator — Learmonth 610 MHz</p>
+  </div>
+  <span class="badge">Engine A + B</span>
+  <span class="badge">v1.0</span>
+</header>
+
+<div id="layout">
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<div id="sidebar">
+
+  <div class="sec">
+    <h2><span>&#x1F4C2;</span> Dữ liệu SWS</h2>
+    <label for="file-sws">File .txt (Learmonth SWS RSTN)</label>
+    <label class="file-btn" for="file-sws">&#x1F4C1; Chọn file .txt&hellip;</label>
+    <input type="file" id="file-sws" accept=".txt">
+    <div class="freq-grid" style="margin-top:6px">
+      <div class="freq-btn active" data-freq="F245">245</div>
+      <div class="freq-btn" data-freq="F410">410</div>
+      <div class="freq-btn active2" data-freq="F610" id="fq-F610" style="border-color:#1f6feb;color:#58a6ff;background:#1f6feb22">610</div>
+      <div class="freq-btn" data-freq="F1415">1415</div>
+      <div class="freq-btn" data-freq="F2695">2695</div>
+      <div class="freq-btn" data-freq="F4995">4995</div>
+      <div class="freq-btn" data-freq="F8800">8800</div>
+      <div class="freq-btn" data-freq="F15400">15400</div>
+    </div>
+    <div id="sws-status" class="status info">Chưa load file — dùng mô hình Gaussian</div>
+  </div>
+
+  <div class="sec">
+    <h2><span>&#x1F4E1;</span> Cấu hình mảng anten</h2>
+    <label>Preset layout</label>
+    <select id="preset-sel">
+      <option value="custom">— Tuỳ chỉnh —</option>
+      <optgroup label="── Sweep mảng (5 case luận văn) ──">
+        <option value="compact" selected>Case 1 · EW compact · 4 anten · d=8 m · bl_max=24 m</option>
+        <option value="ns8">Case 2 · N–S linear · 8 anten · d=15 m · bl_max=105 m</option>
+        <option value="tee65">Case 3 · Chữ T · 11 anten · d=18 m · bl_max=127 m</option>
+        <option value="cross17">Case 4 · Chữ thập graded · 17 anten · r=[5,15,35,65] m</option>
+        <option value="random16">Case 5 · Ngẫu nhiên · 16 anten · ±60 m (seed=3)</option>
+      </optgroup>
+      <optgroup label="── Khác ──">
+        <option value="ext4">[0, 15, 40, 80] m (extended EW)</option>
+        <option value="cross4">[−12, 0, 0, 12] m + NS</option>
+        <option value="2ant">[0, 24] m (2 anten)</option>
+        <option value="3ant">[0, 8, 24] m (3 anten)</option>
+      </optgroup>
+    </select>
+
+    <label>Vị trí anten (East, mét)</label>
+    <table id="ant-table">
+      <thead><tr><th>#</th><th>East (m)</th><th>North (m)</th><th></th></tr></thead>
+      <tbody id="ant-tbody"></tbody>
+    </table>
+    <div style="display:flex;gap:5px;margin-top:6px">
+      <button class="btn sm" id="add-ant">+ Anten</button>
+      <button class="btn sm danger" id="rm-ant">− Bỏ cuối</button>
+    </div>
+
+    <div id="baselines-list"></div>
+  </div>
+
+  <div class="sec">
+    <h2><span>&#x1F30D;</span> Thông số quan trắc</h2>
+    <label>Tần số sóng mang</label>
+    <div class="row">
+      <input type="range" id="fc-slider" min="100" max="2000" step="1" value="610" style="flex:1">
+      <span class="val-display" id="fc-val">610</span>
+      <span class="unit">MHz</span>
+    </div>
+
+    <label>Vĩ độ đài quan sát (°)</label>
+    <div class="row">
+      <input type="number" id="lat-inp" value="-21.8" min="-90" max="90" step="0.1">
+      <span class="unit">° (Learmonth)</span>
+    </div>
+
+    <label>Xích vĩ nguồn δ (°)</label>
+    <div class="row">
+      <input type="range" id="dec-slider" min="-30" max="30" step="0.5" value="0">
+      <span class="val-display" id="dec-val">0.0</span>
+      <span class="unit">°</span>
+    </div>
+
+    <label>Primary beam model</label>
+    <select id="beam-sel">
+      <option value="uniform">Uniform (bỏ qua)</option>
+      <option value="gaussian" selected>Gaussian (FWHM = 70°)</option>
+      <option value="cos2">cos² (lưỡng cực đơn)</option>
+    </select>
+    <label for="file-beam">Hoặc load JSON beam pattern</label>
+    <label class="file-btn" for="file-beam">&#x1F4C1; Load beam.json&hellip;</label>
+    <input type="file" id="file-beam" accept=".json">
+    <div id="beam-status" class="status info" style="margin-top:4px">Dùng mô hình Gaussian 70°</div>
+  </div>
+
+  <div class="sec" style="padding-bottom:16px">
+    <h2><span>&#x26A1;</span> Điều khiển</h2>
+    <button class="btn primary" id="btn-update" style="width:100%">&#x25B6; Cập nhật tất cả</button>
+    <div style="margin-top:6px;display:flex;gap:5px">
+      <button class="btn" id="btn-img" style="flex:1">Render ảnh</button>
+      <div class="spinner" id="spin"></div>
+    </div>
+    <label style="margin-top:8px;display:flex;align-items:center;gap:6px;cursor:pointer">
+      <input type="checkbox" id="auto-update" checked> <span style="font-size:11px">Tự cập nhật khi thay đổi</span>
+    </label>
+  </div>
+
+</div><!-- end sidebar -->
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div id="main">
+  <div id="tabs">
+    <div class="tab active" data-tab="flux">&#x1F31E; Flux Mặt Trời</div>
+    <div class="tab" data-tab="array">&#x1F4D0; Mảng &amp; UV</div>
+    <div class="tab" data-tab="fringe">&#x223F; Vân giao thoa</div>
+    <div class="tab" data-tab="image">&#x1F5BC; Hình ảnh</div>
+    <div class="tab" data-tab="info">&#x2139; Hướng dẫn</div>
+  </div>
+
+  <div id="panels">
+
+    <!-- TAB: FLUX -->
+    <div class="panel active" id="tab-flux">
+      <div class="stat-row" id="flux-stats"></div>
+      <div class="plot-box" id="plt-flux" style="flex:1;min-height:300px"></div>
+    </div>
+
+    <!-- TAB: ARRAY + UV -->
+    <div class="panel" id="tab-array">
+      <div class="plot-row" style="flex:none;height:200px">
+        <div class="plot-half" id="plt-array"></div>
+      </div>
+      <div class="stat-row" id="array-stats"></div>
+      <div class="plot-box" id="plt-uv" style="flex:1;min-height:260px"></div>
+    </div>
+
+    <!-- TAB: FRINGE -->
+    <div class="panel" id="tab-fringe">
+      <table class="fringe-table" id="fringe-info-table">
+        <thead><tr><th>Baseline</th><th>Chiều dài (m)</th><th>b/λ</th><th>Chu kỳ vân (phút)</th><th>Độ phân giải (arcmin)</th></tr></thead>
+        <tbody id="fringe-info-tbody"></tbody>
+      </table>
+      <div class="plot-box" id="plt-fringe" style="flex:1;min-height:280px"></div>
+    </div>
+
+    <!-- TAB: IMAGE -->
+    <div class="panel" id="tab-image">
+      <div class="render-bar">
+        <button class="btn primary sm" id="btn-render">&#x1F5BC; Render PSF + Dirty Image</button>
+        <div class="spinner" id="spin2"></div>
+        <span id="render-status">Nhấn Render để tính toán</span>
+      </div>
+      <div class="plot-row" style="flex:1;min-height:0">
+        <div class="plot-half" id="plt-psf"></div>
+        <div class="plot-half" id="plt-dirty"></div>
+      </div>
+      <div class="plot-box" id="plt-vis" style="height:200px;flex:none"></div>
+    </div>
+
+    <!-- TAB: INFO -->
+    <div class="panel" id="tab-info">
+      <div class="info-card">
+        <h3>Hướng dẫn sử dụng</h3>
+        <ul>
+          <li><b>Load file SWS:</b> File .txt gốc từ Learmonth (định dạng RSTN HHMMSS, 9 cột). Phần ban đêm (<code>//////</code>) tự động bị loại.</li>
+          <li><b>Chọn tần số:</b> Nhấn vào các ô MHz để chọn cột dữ liệu từ file SWS (245–15400 MHz).</li>
+          <li><b>Anten:</b> Nhập vị trí East/North từng anten (mét). Preset "compact EW" = hệ 4 anten dự án [0,8,16,24] m.</li>
+          <li><b>Tần số sóng mang:</b> Kéo slider để thấy ảnh hưởng đến λ, chu kỳ vân, và độ phân giải.</li>
+          <li><b>Declination δ:</b> Thay đổi xích vĩ nguồn ảnh hưởng đến dạng quỹ đạo UV và thời gian transit.</li>
+          <li><b>Tab Hình ảnh:</b> Nhấn "Render" để tính PSF và dirty image (chậm hơn). Dirty image dùng biên độ flux làm trọng số.</li>
+        </ul>
+      </div>
+      <div class="info-card">
+        <h3>Chuyển đổi Primary Beam .npz → JSON</h3>
+        <p>Chạy đoạn Python sau để xuất file beam.json dùng được trong tool này:</p>
+        <pre style="background:#0d1117;border:1px solid #21262d;border-radius:6px;padding:10px;font-size:10px;color:#79c0ff;margin-top:6px;overflow:auto"><code>import numpy as np, json
+
+d = np.load("UFRAME_primary_beam_610MHz.npz")
+# Keys: theta_deg (181,), phi_deg (361,), gain_dBi (181,361)
+# Convention: elevation = -theta_deg  (theta=-90 → el=90°, theta=0 → el=0°)
+theta   = d["theta_deg"]
+gain_2d = d["gain_dBi"]    # shape (181, 361)
+
+# Bán cầu trên: el 0..90°
+mask        = (theta >= -90) & (theta <= 0)
+gain_upper  = gain_2d[mask, :]
+gain_dBi_1d = gain_upper.max(axis=1)   # envelope: max theo phi
+el_deg      = (-theta[mask]).tolist()  # [90, 89, ..., 0]
+
+# Chuẩn hóa tuyến tính 0..1
+gain_max = gain_dBi_1d.max()
+gain_lin = (10 ** ((gain_dBi_1d - gain_max) / 10)).tolist()
+
+out = {
+    "theta_deg": el_deg,
+    "gain":      gain_lin,
+    "gain_dBi":  gain_dBi_1d.tolist(),
+    "freq_MHz":  float(d["freq_MHz"]),
+    "note":      "1D elevation envelope (max over phi)"
+}
+with open("beam.json", "w") as f:
+    json.dump(out, f, indent=2)
+print(f"Saved beam.json  ({len(el_deg)} pts, peak={gain_max:.2f} dBi)")</code></pre>
+      </div>
+      <div class="info-card">
+        <h3>Công thức tham khảo</h3>
+        <ul>
+          <li>Bước sóng: <code>λ = c / f</code></li>
+          <li>Toạ độ UV (EW baseline): <code>u = B sin H / λ</code>, <code>v = −B sin δ cos H / λ</code></li>
+          <li>Chu kỳ vân tại transit: <code>T = λ / (B cos δ ω_E)</code> giây</li>
+          <li>Độ phân giải: <code>θ ≈ λ / B_max</code> radian</li>
+          <li>Jinc visibility (đĩa đồng nhất): <code>|V| = |2J₁(π θ☉ b/λ) / (π θ☉ b/λ)|</code></li>
+          <li>Null đầu tiên (Mặt Trời 0.53°): <code>B_null ≈ 1.22λ / θ☉ ≈ 130 m</code> tại 610 MHz</li>
+        </ul>
+      </div>
+    </div>
+
+  </div><!-- end panels -->
+</div><!-- end main -->
+</div><!-- end layout -->
+
+<script>
+// ═══════════════════════════════════════════════════════
+// 1. CONSTANTS
+// ═══════════════════════════════════════════════════════
+const C       = 299792458;
+const OMEGA_E = 2 * Math.PI / 86164.1;
+const COLORS  = ['#58a6ff','#3fb950','#d29922','#f85149','#bc8cff','#39d353','#ff7b72','#79c0ff','#ffa657','#56d364'];
+const FREQ_FC = {F245:245e6,F410:410e6,F610:610e6,F1415:1415e6,F2695:2695e6,F4995:4995e6,F8800:8800e6,F15400:15400e6};
+const SUN_DIAM_DEG = 0.53;
+const PLOTLY_LAYOUT_BASE = {
+  paper_bgcolor:'#0d1117', plot_bgcolor:'#0d1117',
+  font:{color:'#8b949e',size:11},
+  margin:{l:46,r:16,t:32,b:42},
+  xaxis:{gridcolor:'#21262d',zerolinecolor:'#30363d'},
+  yaxis:{gridcolor:'#21262d',zerolinecolor:'#30363d'},
+  legend:{bgcolor:'#161b22',bordercolor:'#30363d',borderwidth:1,font:{size:10}},
+};
+const PLT_CFG = {responsive:true,displayModeBar:false};
+
+// ═══════════════════════════════════════════════════════
+// 2. STATE
+// ═══════════════════════════════════════════════════════
+const S = {
+  swsRaw:   null,   // { rows[[t,flux]...], flags[] }
+  dayFlux:  null,   // [{t_h, sfu}]
+  freqKey:  'F610',
+  fc:       610e6,
+  lat_deg:  -21.8,
+  dec_deg:  0.0,
+  positions: [[0,0],[8,0],[16,0],[24,0]],  // [East, North] pairs
+  beamModel:'gaussian',
+  beamJSON: null,
+  uvCache:  null,
+  fringeCache: null,
+  imageRendered: false,
+};
+
+// ═══════════════════════════════════════════════════════
+// 3. SWS PARSER
+// ═══════════════════════════════════════════════════════
+function parseSWS(text, freqKey) {
+  const KEYS = ['Time_s','F245','F410','F610','F1415','F2695','F4995','F8800','F15400'];
+  const col = KEYS.indexOf(freqKey);
+  if (col < 0) throw new Error('Unknown key: ' + freqKey);
+  const rows = [], flags = [];
+  let last = null;
+  for (const rawLine of text.split('\n')) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    if (line.includes('//////')) {
+      if (last !== null) {
+        const t = parseFloat(line.split(/\s+/)[0]);
+        const t_use = isNaN(t) ? (rows.length ? rows[rows.length-1][0]+1 : 0) : t;
+        rows.push([t_use, last[col-1]]); flags.push(1);
+      }
+      continue;
+    }
+    const parts = line.split(/\s+/).map(Number);
+    if (parts.some(isNaN) || parts.length < 9) continue;
+    rows.push([parts[0], parts[col]]); flags.push(0);
+    last = parts.slice(1);
+  }
+  return { rows, flags };
+}
+
+function hhmmssToHours(v) {
+  const hh = Math.floor(v / 10000);
+  const mm = Math.floor((v % 10000) / 100);
+  const ss = v % 100;
+  return hh + mm/60 + ss/3600;
+}
+
+function getDaytime(rows, flags) {
+  let best = {s:0, e:-1, len:0}, s = null;
+  for (let i = 0; i <= flags.length; i++) {
+    if (i < flags.length && flags[i] === 1) { if (s===null) s=i; }
+    else if (s !== null) {
+      const len = i-s;
+      if (len > best.len) best = {s, e:i-1, len};
+      s = null;
+    }
+  }
+  const before = flags.slice(0,best.s).filter(f=>f===0).length;
+  const after  = flags.slice(best.e+1).filter(f=>f===0).length;
+  let lo = (before>=after) ? 0 : best.e+1;
+  let hi = (before>=after) ? best.s : flags.length;
+  const real = [];
+  for (let i=lo; i<hi; i++) if (flags[i]===0) real.push(i);
+  if (!real.length) return rows.map(r=>({t_h:hhmmssToHours(r[0]),sfu:r[1]}));
+  return rows.slice(real[0], real[real.length-1]+1)
+             .map(r=>({t_h:hhmmssToHours(r[0]), sfu:Math.max(0,r[1])}));
+}
+
+// ═══════════════════════════════════════════════════════
+// 4. PHYSICS ENGINE
+// ═══════════════════════════════════════════════════════
+function lam(fc) { return C/fc; }
+
+function transitH0(lat_deg, dec_deg) {
+  const lat = lat_deg*Math.PI/180, dec = dec_deg*Math.PI/180;
+  const cosH0 = -Math.tan(lat)*Math.tan(dec);
+  if (Math.abs(cosH0) >= 1) return 6;
+  return Math.min(Math.acos(cosH0)*12/Math.PI, 8);
+}
+
+function computeUV(positions, fc, lat_deg, dec_deg, nPts=250) {
+  const λ = lam(fc);
+  const lat = lat_deg*Math.PI/180;
+  const dec = dec_deg*Math.PI/180;
+  const sL = Math.sin(lat), cL = Math.cos(lat);
+  const sd = Math.sin(dec),  cd = Math.cos(dec);
+  const H0 = transitH0(lat_deg, dec_deg);
+  const Hs = Array.from({length:nPts},(_,i)=>-H0+2*H0*i/(nPts-1));
+  const Hr = Hs.map(h=>h*Math.PI/12);
+  const baselines = [];
+  for (let i=0; i<positions.length; i++) {
+    for (let j=i+1; j<positions.length; j++) {
+      const bE = positions[j][0]-positions[i][0];
+      const bN = positions[j][1]-positions[i][1];
+      // TMS Eq. 4.1 — khớp hoàn toàn với interfsim.py enu_to_xyz + compute_uvw
+      const Xl = -bN*sL, Yl = bE, Zl = bN*cL;  // ENU → XYZ (m)
+      const us = Hr.map(H => (Math.sin(H)*Xl + Math.cos(H)*Yl)/λ);
+      const vs = Hr.map(H => (-sd*Math.cos(H)*Xl + sd*Math.sin(H)*Yl + cd*Zl)/λ);
+      baselines.push({i,j,bE,bN,
+        label:`A${i}−A${j} (${Math.sqrt(bE**2+bN**2).toFixed(1)}m)`,
+        len:Math.sqrt(bE**2+bN**2), us, vs, Hs});
+    }
+  }
+  return {baselines, H0, lat_deg};
+}
+
+function computeFringes(uvData, fc, dec_deg, dayFlux, nPts=500) {
+  const λ = lam(fc);
+  const dec = dec_deg*Math.PI/180;
+  const {baselines, H0} = uvData;
+  const Hs = Array.from({length:nPts},(_,i)=>-H0+2*H0*i/(nPts-1));
+  const Hr = Hs.map(h=>h*Math.PI/12);
+
+  // Flux envelope (normalized)
+  let fluxArr = null, fluxMax = 1;
+  if (dayFlux && dayFlux.length > 1) {
+    const sfus = dayFlux.map(d=>d.sfu);
+    fluxMax = Math.max(...sfus) || 1;
+    // Resample to nPts
+    fluxArr = Hr.map((_,i)=>{
+      const fi = Math.round(i*(dayFlux.length-1)/(nPts-1));
+      return Math.max(0, dayFlux[fi].sfu);
+    });
+  }
+  const getFlux = (i) => {
+    if (fluxArr) return fluxArr[i]/fluxMax;
+    const t = Hs[i]/H0;
+    return Math.exp(-2*t*t);
+  };
+  // Pre-compute flux envelope — dùng bởi dirty image (không có w-term)
+  const fluxEnv = Hr.map((_,idx) => getFlux(idx));
+
+  // Latitude từ uvData (được lưu khi computeUV chạy)
+  const lat = (uvData.lat_deg ?? -21.8) * Math.PI / 180;
+  const sL = Math.sin(lat), cL = Math.cos(lat);
+  const sd = Math.sin(dec), cd = Math.cos(dec);
+
+  return baselines.map(bl=>{
+    const bE=bl.bE, bN=bl.bN;
+    const bLen = Math.sqrt(bE**2+bN**2);
+    // XYZ components (m): ENU → equatorial
+    const Xl = -bN*sL, Yl = bE, Zl = bN*cL;
+    // Fringe period: dùng bEff = tốc độ fringe cực đại (tại H tối ưu)
+    const bEff = Math.sqrt(Yl*Yl + Xl*Xl);  // = sqrt(bE²+(bN·sin(lat))²)
+    const T_sec = (Math.abs(cd) < 1e-4 || bEff < 1e-4) ? Infinity
+      : λ / (bEff * Math.abs(cd) * OMEGA_E);
+    const re_V = Hr.map((H,idx)=>{
+      // w-coordinate = geometric delay in wavelengths (TMS Eq. 4.1)
+      const w = (cd*Math.cos(H)*Xl - cd*Math.sin(H)*Yl + sd*Zl) / λ;
+      return getFlux(idx) * Math.cos(2*Math.PI * w);
+    });
+    return {
+      ...bl, Hs, re_V, fluxEnv,
+      T_sec, T_min:T_sec/60,
+      blen_lambda: bLen/λ,
+      res_arcmin: (λ/bLen)*180/Math.PI*60,
+    };
+  });
+}
+
+// Jinc function for solar disk visibility model
+function jinc(x) {
+  if (Math.abs(x) < 1e-6) return 0.5;
+  // J1(x)/x approximated
+  const j1 = j1Bessel(x);
+  return j1/x;
+}
+function j1Bessel(x) {
+  // Polynomial approximation for J1
+  const ax = Math.abs(x);
+  if (ax < 3.75) {
+    const y = (x/3.75)**2;
+    return x*(0.5+y*(-0.06250+y*(0.00260416+y*(-6.1035e-5+y*(8.44e-7)))));
+  }
+  const z = 3.75/ax;
+  const p = (0.79788456+z*(-0.00000077+z*(-0.01671942+z*(0.00300243+z*(-0.00451196+z*(0.00934666+z*(-0.00698520)))))));
+  const q = -0.78539816 + z*(0.04166397+z*(0.00239400+z*(-0.01694571+z*(0.02073148+z*(-0.01234767+z*0.00316706)))));
+  return Math.sqrt(0.636619772/ax)*p*Math.cos(ax+q)*Math.sign(x);
+}
+
+function solarVisibility(bl_lambda) {
+  const theta_sun_rad = SUN_DIAM_DEG*Math.PI/180;
+  const arg = Math.PI*theta_sun_rad*bl_lambda;
+  return Math.abs(2*jinc(arg));
+}
+
+// ═══════════════════════════════════════════════════════
+// 5. IMAGING (direct DFT — small grid)
+// ═══════════════════════════════════════════════════════
+function computePSF_DFT(uvData, gridSize=48, fovDeg=3.0) {
+  const fov = fovDeg*Math.PI/180;
+  const dl = fov/gridSize;
+  const ls = Array.from({length:gridSize},(_,i)=>(i-gridSize/2)*dl);
+  const ms = Array.from({length:gridSize},(_,i)=>(i-gridSize/2)*dl);
+
+  // Collect UV (use every 3rd point for speed)
+  const us=[], vs=[];
+  for (const bl of uvData.baselines) {
+    for (let k=0; k<bl.us.length; k+=3) { us.push(bl.us[k]); vs.push(bl.vs[k]); }
+  }
+  const N = us.length;
+
+  const z = new Array(gridSize).fill(0).map(()=>new Float32Array(gridSize));
+  for (let mi=0; mi<gridSize; mi++) {
+    for (let li=0; li<gridSize; li++) {
+      let s=0;
+      for (let k=0; k<N; k++) {
+        const ph = 2*Math.PI*(us[k]*ls[li]+vs[k]*ms[mi]);
+        s += Math.cos(ph);  // both conjugates contribute cos
+      }
+      z[mi][li] = s/N;
+    }
+  }
+  // Normalize
+  let mx=0; for(const r of z) for(const v of r) if(Math.abs(v)>mx) mx=Math.abs(v);
+  const norm = z.map(r=>Array.from(r).map(v=>v/(mx||1)));
+  return {
+    z: norm,
+    l_arcmin: ls.map(l=>l*180/Math.PI*60),
+    m_arcmin: ms.map(m=>m*180/Math.PI*60),
+  };
+}
+
+function computeDirtyImage_DFT(uvData, fringes, gridSize=48, fovDeg=3.0) {
+  const fov = fovDeg*Math.PI/180;
+  const dl = fov/gridSize;
+  const ls = Array.from({length:gridSize},(_,i)=>(i-gridSize/2)*dl);
+  const ms = Array.from({length:gridSize},(_,i)=>(i-gridSize/2)*dl);
+
+  const us=[], vs=[], amps=[];
+  for (let b=0; b<uvData.baselines.length; b++) {
+    const bl = uvData.baselines[b];
+    const fr = fringes[b];
+    for (let k=0; k<bl.us.length; k+=3) {
+      const fi = Math.round(k*(fr.re_V.length-1)/(bl.us.length-1));
+      // Dùng phase-stopped visibility: flux × V_disk (không có w-term)
+      // fr.re_V = flux×cos(2π·w) — sai cho dirty image vì w làm mất coherence
+      const bProj = Math.sqrt(bl.us[k]**2 + bl.vs[k]**2);
+      const amp = fr.fluxEnv[fi] * solarVisibility(bProj);
+      us.push(bl.us[k]); vs.push(bl.vs[k]); amps.push(amp);
+    }
+  }
+  const N = us.length;
+
+  const z = new Array(gridSize).fill(0).map(()=>new Float32Array(gridSize));
+  for (let mi=0; mi<gridSize; mi++) {
+    for (let li=0; li<gridSize; li++) {
+      let s=0;
+      for (let k=0; k<N; k++) {
+        const ph = 2*Math.PI*(us[k]*ls[li]+vs[k]*ms[mi]);
+        s += amps[k]*Math.cos(ph);
+      }
+      z[mi][li] = s/N;
+    }
+  }
+  let mx=0; for(const r of z) for(const v of r) if(Math.abs(v)>mx) mx=Math.abs(v);
+  const norm = z.map(r=>Array.from(r).map(v=>v/(mx||1)));
+  return {
+    z: norm,
+    l_arcmin: ls.map(l=>l*180/Math.PI*60),
+    m_arcmin: ms.map(m=>m*180/Math.PI*60),
+  };
+}
+
+// ═══════════════════════════════════════════════════════
+// 6. RENDER FUNCTIONS
+// ═══════════════════════════════════════════════════════
+function renderFlux() {
+  const df = S.dayFlux;
+  const statsDiv = document.getElementById('flux-stats');
+
+  if (!df || df.length === 0) {
+    Plotly.react('plt-flux', [{
+      x: Array.from({length:200},(_,i)=>-6+12*i/199),
+      y: Array.from({length:200},(_,i)=>{ const t=(-6+12*i/199)/6; return Math.exp(-2*t*t); }),
+      type:'scatter', mode:'lines', name:'Mô hình Gaussian',
+      line:{color:'#ff7b72', width:2, dash:'dot'},
+    }], {
+      ...PLOTLY_LAYOUT_BASE,
+      title:{text:'Chưa load file — flux mô hình Gaussian (chuẩn hoá)', font:{size:12}},
+      xaxis:{...PLOTLY_LAYOUT_BASE.xaxis, title:'Giờ từ đỉnh transit (h)'},
+      yaxis:{...PLOTLY_LAYOUT_BASE.yaxis, title:'Biên độ (chuẩn hoá)'},
+    }, PLT_CFG);
+    statsDiv.innerHTML = '';
+    return;
+  }
+
+  const ts = df.map(d=>d.t_h);
+  const sfus = df.map(d=>d.sfu);
+  const peak = Math.max(...sfus);
+  const mean = sfus.reduce((a,b)=>a+b,0)/sfus.length;
+  const dur = (ts[ts.length-1]-ts[0]).toFixed(2);
+  statsDiv.innerHTML = `
+    <div class="stat"><div class="val">${peak.toFixed(0)}</div><div class="lbl">SFU đỉnh</div></div>
+    <div class="stat"><div class="val">${mean.toFixed(0)}</div><div class="lbl">SFU trung bình</div></div>
+    <div class="stat"><div class="val">${dur} h</div><div class="lbl">Thời gian ban ngày</div></div>
+    <div class="stat"><div class="val">${df.length}</div><div class="lbl">Số mẫu</div></div>
+  `;
+
+  Plotly.react('plt-flux', [{
+    x: ts, y: sfus, type:'scatter', mode:'lines',
+    name:`${S.freqKey} flux`,
+    line:{color:'#ff7b72', width:1.5},
+    fill:'tozeroy', fillcolor:'rgba(255,123,114,0.12)',
+  }], {
+    ...PLOTLY_LAYOUT_BASE,
+    title:{text:`Learmonth ${S.freqKey} — Thông lượng ban ngày (SFU)`, font:{size:12}},
+    xaxis:{...PLOTLY_LAYOUT_BASE.xaxis, title:'UTC (giờ)'},
+    yaxis:{...PLOTLY_LAYOUT_BASE.yaxis, title:'Flux density (SFU)'},
+  }, PLT_CFG);
+}
+
+function renderArray() {
+  const pos = S.positions;
+  const {baselines} = S.uvCache;
+  const λ = lam(S.fc);
+
+  // Array layout
+  const xs = pos.map(p=>p[0]), ys = pos.map(p=>p[1]);
+  Plotly.react('plt-array', [{
+    x:xs, y:ys, type:'scatter', mode:'markers+text',
+    text:pos.map((_,i)=>`A${i}`),
+    textposition:'top center', textfont:{size:11, color:'#e6edf3'},
+    marker:{size:14, color:COLORS.slice(0,pos.length),
+            line:{color:'#fff',width:1.5}},
+    name:'Anten',
+  }], {
+    ...PLOTLY_LAYOUT_BASE,
+    title:{text:'Vị trí anten (ENU)', font:{size:12}},
+    xaxis:{...PLOTLY_LAYOUT_BASE.xaxis, title:'East (m)', scaleanchor:'y'},
+    yaxis:{...PLOTLY_LAYOUT_BASE.yaxis, title:'North (m)'},
+    height:190, margin:{l:46,r:16,t:36,b:40},
+  }, PLT_CFG);
+
+  // Stats
+  const bmax = Math.max(...baselines.map(b=>b.len));
+  const res = (λ/bmax)*180/Math.PI*60;
+  document.getElementById('array-stats').innerHTML = `
+    <div class="stat"><div class="val">${pos.length}</div><div class="lbl">Số anten</div></div>
+    <div class="stat"><div class="val">${baselines.length}</div><div class="lbl">Số baseline</div></div>
+    <div class="stat"><div class="val">${bmax.toFixed(1)} m</div><div class="lbl">B_max</div></div>
+    <div class="stat"><div class="val">${(bmax/λ).toFixed(1)}</div><div class="lbl">B_max / λ</div></div>
+    <div class="stat"><div class="val">${res.toFixed(1)}'</div><div class="lbl">Độ phân giải</div></div>
+  `;
+
+  // UV coverage
+  const traces = [];
+  baselines.forEach((bl,idx)=>{
+    const c = COLORS[idx%COLORS.length];
+    traces.push({x:bl.us, y:bl.vs, type:'scatter', mode:'lines',
+      name:bl.label, line:{color:c,width:1.4}, legendgroup:`b${idx}`});
+    // conjugate
+    traces.push({x:bl.us.map(u=>-u), y:bl.vs.map(v=>-v), type:'scatter', mode:'lines',
+      showlegend:false, line:{color:c,width:1.4,dash:'dot'}, legendgroup:`b${idx}`});
+  });
+  Plotly.react('plt-uv', traces, {
+    ...PLOTLY_LAYOUT_BASE,
+    title:{text:'UV Coverage — quỹ đạo trong mặt phẳng Fourier', font:{size:12}},
+    xaxis:{...PLOTLY_LAYOUT_BASE.xaxis, title:'u (λ)', scaleanchor:'y'},
+    yaxis:{...PLOTLY_LAYOUT_BASE.yaxis, title:'v (λ)'},
+  }, PLT_CFG);
+}
+
+function renderFringes() {
+  const fringes = S.fringeCache;
+  if (!fringes) return;
+  const λ = lam(S.fc);
+
+  // Info table
+  const tbody = document.getElementById('fringe-info-tbody');
+  tbody.innerHTML = fringes.map((fr,i)=>`
+    <tr>
+      <td><span style="color:${COLORS[i%COLORS.length]};font-weight:600">${fr.label}</span></td>
+      <td>${fr.len.toFixed(1)}</td>
+      <td>${fr.blen_lambda.toFixed(1)}</td>
+      <td>${isFinite(fr.T_min)?fr.T_min.toFixed(1):'∞'}</td>
+      <td>${fr.res_arcmin.toFixed(1)}</td>
+    </tr>`).join('');
+
+  // Fringe plot
+  const traces = fringes.map((fr,i)=>({
+    x: fr.Hs, y: fr.re_V,
+    type:'scatter', mode:'lines', name:fr.label,
+    line:{color:COLORS[i%COLORS.length], width:1.4},
+  }));
+  Plotly.react('plt-fringe', traces, {
+    ...PLOTLY_LAYOUT_BASE,
+    title:{text:'Vân giao thoa — Re(V) theo giờ góc', font:{size:12}},
+    xaxis:{...PLOTLY_LAYOUT_BASE.xaxis, title:'Giờ góc (h)', zeroline:true},
+    yaxis:{...PLOTLY_LAYOUT_BASE.yaxis, title:'Re(V) (đơn vị chuẩn hoá)'},
+  }, PLT_CFG);
+}
+
+function renderImaging() {
+  const spin = document.getElementById('spin2');
+  const status = document.getElementById('render-status');
+  spin.style.display = 'block';
+  status.textContent = 'Đang tính toán...';
+
+  // Defer to allow UI to update
+  setTimeout(()=>{
+    try {
+      const psf = computePSF_DFT(S.uvCache, 48, 3.0);
+      const di  = computeDirtyImage_DFT(S.uvCache, S.fringeCache, 48, 3.0);
+
+      const heatBase = {type:'heatmap', zsmooth:'best', showscale:true,
+        colorbar:{thickness:12, len:0.85, tickfont:{size:9}}};
+
+      Plotly.react('plt-psf', [{...heatBase,
+        x:psf.l_arcmin, y:psf.m_arcmin, z:psf.z,
+        colorscale:'RdBu', zmid:0, zmin:-1, zmax:1,
+        name:'PSF',
+      }], {
+        ...PLOTLY_LAYOUT_BASE,
+        title:{text:'Dirty Beam (PSF) — 3° FOV, 48×48 px', font:{size:11}},
+        xaxis:{...PLOTLY_LAYOUT_BASE.xaxis, title:"l (arcmin)"},
+        yaxis:{...PLOTLY_LAYOUT_BASE.yaxis, title:"m (arcmin)"},
+      }, PLT_CFG);
+
+      Plotly.react('plt-dirty', [{...heatBase,
+        x:di.l_arcmin, y:di.m_arcmin, z:di.z,
+        colorscale:'Hot', zmin:0, zmax:1,
+        name:'Dirty Image',
+      }], {
+        ...PLOTLY_LAYOUT_BASE,
+        title:{text:'Dirty Image — flux weighted', font:{size:11}},
+        xaxis:{...PLOTLY_LAYOUT_BASE.xaxis, title:"l (arcmin)"},
+        yaxis:{...PLOTLY_LAYOUT_BASE.yaxis, title:"m (arcmin)"},
+      }, PLT_CFG);
+
+      // Jinc visibility curve
+      const bls = S.uvCache.baselines.map(b=>b.len);
+      const bmax = Math.max(...bls)*1.5;
+      const b_range = Array.from({length:200},(_,i)=>i*bmax/199);
+      const λ = lam(S.fc);
+      const jinc_y = b_range.map(b=>solarVisibility(b/λ));
+      const vis_traces = [
+        {x:b_range, y:jinc_y, type:'scatter', mode:'lines',
+         name:`Jinc (☉ ${SUN_DIAM_DEG}°)`, line:{color:'#ff7b72',width:2}},
+      ];
+      bls.forEach((b,i)=>{
+        const v = solarVisibility(b/λ);
+        vis_traces.push({
+          x:[b,b], y:[0,v], type:'scatter', mode:'lines+markers',
+          name:S.uvCache.baselines[i].label,
+          line:{color:COLORS[i%COLORS.length], width:1.5, dash:'dash'},
+          marker:{size:7}, showlegend:true,
+        });
+      });
+      Plotly.react('plt-vis', vis_traces, {
+        ...PLOTLY_LAYOUT_BASE,
+        title:{text:`Visibility biên độ — Mô hình đĩa Mặt Trời đồng nhất (fc=${(S.fc/1e6).toFixed(0)} MHz)`, font:{size:11}},
+        xaxis:{...PLOTLY_LAYOUT_BASE.xaxis, title:'Chiều dài baseline (m)'},
+        yaxis:{...PLOTLY_LAYOUT_BASE.yaxis, title:'|V| (chuẩn hoá)', range:[0,1.05]},
+      }, PLT_CFG);
+
+      status.textContent = 'Hoàn thành';
+      S.imageRendered = true;
+    } catch(e) {
+      status.textContent = 'Lỗi: ' + e.message;
+    }
+    spin.style.display = 'none';
+  }, 30);
+}
+
+// ═══════════════════════════════════════════════════════
+// 7. MAIN UPDATE
+// ═══════════════════════════════════════════════════════
+function updateAll() {
+  S.uvCache     = computeUV(S.positions, S.fc, S.lat_deg, S.dec_deg);
+  S.fringeCache = computeFringes(S.uvCache, S.fc, S.dec_deg, S.dayFlux);
+  updateBaselineList();
+  renderFlux();
+  renderArray();
+  renderFringes();
+  if (S.imageRendered) renderImaging();
+}
+
+function updateBaselineList() {
+  const {baselines} = S.uvCache;
+  const λ = lam(S.fc);
+  document.getElementById('baselines-list').innerHTML =
+    '<b style="color:#8b949e;font-size:10px">Baselines:</b> ' +
+    baselines.map((bl,i)=>`<span style="color:${COLORS[i%COLORS.length]}">${bl.len.toFixed(1)}m (${(bl.len/λ).toFixed(1)}λ)</span>`).join(' · ');
+}
+
+// ═══════════════════════════════════════════════════════
+// 8. ANTENNA TABLE UI
+// ═══════════════════════════════════════════════════════
+function rebuildAntTable() {
+  const tbody = document.getElementById('ant-tbody');
+  tbody.innerHTML = '';
+  S.positions.forEach((p,i)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="ant-color" style="background:${COLORS[i%COLORS.length]}"></span> A${i}</td>
+      <td><input type="number" class="ant-e" data-i="${i}" value="${p[0]}" step="1" min="-500" max="500"></td>
+      <td><input type="number" class="ant-n" data-i="${i}" value="${p[1]}" step="1" min="-500" max="500"></td>
+      <td></td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('.ant-e').forEach(inp=>{
+    inp.addEventListener('change',()=>{
+      S.positions[+inp.dataset.i][0] = parseFloat(inp.value)||0;
+      document.getElementById('preset-sel').value='custom';
+      scheduleUpdate();
+    });
+  });
+  tbody.querySelectorAll('.ant-n').forEach(inp=>{
+    inp.addEventListener('change',()=>{
+      S.positions[+inp.dataset.i][1] = parseFloat(inp.value)||0;
+      document.getElementById('preset-sel').value='custom';
+      scheduleUpdate();
+    });
+  });
+}
+
+const PRESETS = {
+  // ── Sweep 5 cases ──
+  compact:  [[0,0],[8,0],[16,0],[24,0]],
+  ns8:      [[0,0],[0,15],[0,30],[0,45],[0,60],[0,75],[0,90],[0,105]],
+  tee65:    [[0,0],[18,0],[36,0],[54,0],[72,0],[90,0],
+             [0,18],[0,36],[0,54],[0,72],[0,90]],
+  cross17:  [[0,0],
+             [5,0],[15,0],[35,0],[65,0],
+             [-5,0],[-15,0],[-35,0],[-65,0],
+             [0,5],[0,15],[0,35],[0,65],
+             [0,-5],[0,-15],[0,-35],[0,-65]],
+  random16: [[-49.72,-31.58],[36.15,9.86],[-48.70,-8.02],[-2.51,-40.83],
+             [28.15,-46.36],[-13.05,2.01],[-8.32,10.42],[28.54,54.75],
+             [-25.90,17.83],[23.55,-24.87],[-59.82,56.82],[-24.19,-22.32],
+             [47.01,10.22],[-3.44,32.79],[-56.36,24.84],[-15.09,-49.10]],
+  // ── Khác ──
+  ext4:    [[0,0],[15,0],[40,0],[80,0]],
+  cross4:  [[-12,0],[0,0],[12,0],[0,12]],
+  '2ant':  [[0,0],[24,0]],
+  '3ant':  [[0,0],[8,0],[24,0]],
+};
+
+// ═══════════════════════════════════════════════════════
+// 9. EVENT HANDLERS
+// ═══════════════════════════════════════════════════════
+let debTimer = null;
+function scheduleUpdate() {
+  if (!document.getElementById('auto-update').checked) return;
+  clearTimeout(debTimer);
+  debTimer = setTimeout(updateAll, 250);
+}
+
+// Tabs
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-'+tab.dataset.tab).classList.add('active');
+    // Trigger Plotly resize
+    setTimeout(()=>{ window.dispatchEvent(new Event('resize')); }, 50);
+  });
+});
+
+// Freq selector buttons
+let activeFreqKey = 'F610';
+document.querySelectorAll('.freq-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.freq-btn').forEach(b=>{
+      b.style.borderColor=''; b.style.color=''; b.style.background='';
+    });
+    btn.style.borderColor='#1f6feb'; btn.style.color='#58a6ff'; btn.style.background='#1f6feb22';
+    S.freqKey = btn.dataset.freq;
+    if (S.swsRaw) {
+      try {
+        const parsed = parseSWS(S.swsRaw, S.freqKey);
+        S.dayFlux = getDaytime(parsed.rows, parsed.flags);
+        renderFlux();
+      } catch(e) {}
+    }
+  });
+});
+
+// Carrier frequency slider
+document.getElementById('fc-slider').addEventListener('input', function() {
+  S.fc = parseFloat(this.value)*1e6;
+  document.getElementById('fc-val').textContent = this.value;
+  scheduleUpdate();
+});
+
+// Declination slider
+document.getElementById('dec-slider').addEventListener('input', function() {
+  S.dec_deg = parseFloat(this.value);
+  document.getElementById('dec-val').textContent = parseFloat(this.value).toFixed(1);
+  scheduleUpdate();
+});
+
+// Latitude input
+document.getElementById('lat-inp').addEventListener('change', function() {
+  S.lat_deg = parseFloat(this.value)||0;
+  scheduleUpdate();
+});
+
+// SWS file loader
+document.getElementById('file-sws').addEventListener('change', function(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    try {
+      S.swsRaw = ev.target.result;
+      const parsed = parseSWS(S.swsRaw, S.freqKey);
+      S.dayFlux = getDaytime(parsed.rows, parsed.flags);
+      const n = S.dayFlux.length;
+      const peak = Math.max(...S.dayFlux.map(d=>d.sfu));
+      document.getElementById('sws-status').className='status ok';
+      document.getElementById('sws-status').textContent=
+        `✓ ${f.name} — ${n} mẫu ban ngày, đỉnh ${peak.toFixed(0)} SFU`;
+      updateAll();
+    } catch(err) {
+      document.getElementById('sws-status').className='status err';
+      document.getElementById('sws-status').textContent='Lỗi: '+err.message;
+    }
+  };
+  reader.readAsText(f);
+});
+
+// Beam JSON loader
+document.getElementById('file-beam').addEventListener('change', function(e) {
+  const f = e.target.files[0]; if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    try {
+      S.beamJSON = JSON.parse(ev.target.result);
+      document.getElementById('beam-status').className='status ok';
+      document.getElementById('beam-status').textContent=
+        `✓ ${f.name} — ${S.beamJSON.theta_deg.length} điểm`;
+      document.getElementById('beam-sel').value='custom_json';
+    } catch(err) {
+      document.getElementById('beam-status').className='status err';
+      document.getElementById('beam-status').textContent='Lỗi parse JSON: '+err.message;
+    }
+  };
+  reader.readAsText(f);
+});
+
+// Preset selector
+document.getElementById('preset-sel').addEventListener('change', function() {
+  if (PRESETS[this.value]) {
+    S.positions = PRESETS[this.value].map(p=>[...p]);
+    rebuildAntTable();
+    updateAll();
+  }
+});
+
+// Add/remove antennas
+document.getElementById('add-ant').addEventListener('click',()=>{
+  const last = S.positions[S.positions.length-1];
+  S.positions.push([last[0]+8, last[1]]);
+  document.getElementById('preset-sel').value='custom';
+  rebuildAntTable(); updateAll();
+});
+document.getElementById('rm-ant').addEventListener('click',()=>{
+  if (S.positions.length <= 2) return;
+  S.positions.pop();
+  document.getElementById('preset-sel').value='custom';
+  rebuildAntTable(); updateAll();
+});
+
+// Update all button
+document.getElementById('btn-update').addEventListener('click', updateAll);
+document.getElementById('btn-img').addEventListener('click', renderImaging);
+document.getElementById('btn-render').addEventListener('click', renderImaging);
+
+// Beam model selector
+document.getElementById('beam-sel').addEventListener('change', function() {
+  S.beamModel = this.value;
+  scheduleUpdate();
+});
+
+// ═══════════════════════════════════════════════════════
+// 10. INIT
+// ═══════════════════════════════════════════════════════
+rebuildAntTable();
+updateAll();
+</script>
+</body>
+</html>
