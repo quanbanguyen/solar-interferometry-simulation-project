@@ -1,1 +1,0 @@
-## CASE 2 — Mảng mở rộng 2D + Mô hình thuận (Forward Visibility)

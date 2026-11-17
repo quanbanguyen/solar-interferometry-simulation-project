@@ -1,0 +1,40 @@
+# Reproduces the thesis v1 assumptions as closely as the corrected code allows:
+# daylight block stretched over H = -90..+90 deg, dec = 0, both polarisations
+# counted (pol_factor = 1). Use it to quantify how much each fix changes the
+# published numbers (see docs/AUDIT.md).
+name = "thesis_v1_reproduction"
+seed = 42
+integration_bins = 50
+
+[array]
+preset = "compact"
+
+[observation]
+rstn_file = "data/rstn/learmonth/20-3-2025.txt"
+freq_mhz = 610
+site = "learmonth"
+time_mapping = "stretch"
+dec_deg = 0.0
+n_samples = 50000
+
+[receiver]
+bw_hz = 1e6
+t_sys_k = 150.0
+r_load_ohm = 75.0
+pol_factor = 1.0
+
+[antenna]
+beam_file = "data/antenna/beams/UFRAME_primary_beam_610MHz.npz"
+element_az_deg = 0.0
+
+[source]
+model = "point"
+
+[comparison]
+enabled = true
+measured_noise_db = -32.062
+measured_peak_db = -32.036
+
+[output]
+dir = "results/thesis_v1_reproduction"
+figures = true
