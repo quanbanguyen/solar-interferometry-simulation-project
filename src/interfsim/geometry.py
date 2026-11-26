@@ -84,14 +84,18 @@ def compute_uvw(baseline_vecs_enu: np.ndarray, obs: Observation):
 
 
 def antenna_phase(positions_enu: np.ndarray, obs: Observation,
-                  l: float = 0.0, m: float = 0.0) -> np.ndarray:
+                  l=0.0, m=0.0) -> np.ndarray:
     """Geometric phase of each antenna, shape (T, N), for a source at offset (l, m)
-    [direction cosines] from the phase centre: phi_k = -2*pi/lambda * r_k . s_hat."""
+    [direction cosines] from the phase centre: phi_k = -2*pi/lambda * r_k . s_hat.
+
+    l and m may be scalars or arrays of shape (T,) for a source that moves
+    along the track (e.g. a moving burst)."""
     ant = enu_to_xyz(np.asarray(positions_enu, float), obs.lat_rad)
     s = source_dir_xyz(obs.H_rad, obs.dec_rad)
-    if l or m:
+    l, m = np.asarray(l, float), np.asarray(m, float)
+    if np.any(l) or np.any(m):
         eu, ev = uv_basis_xyz(obs.H_rad, obs.dec_rad)
-        s = s + l * eu + m * ev
+        s = s + l[..., None] * eu + m[..., None] * ev
     return -2.0 * np.pi / obs.lam * (s @ ant.T)
 
 

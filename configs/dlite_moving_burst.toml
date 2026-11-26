@@ -1,0 +1,47 @@
+# Moving solar burst injected on the 2025-03-20 Learmonth 610 MHz track,
+# observed by the DLITE-style triangle + centre (2-D baselines).
+# The burst parameters are typical of moving type IV sources reported in the
+# literature (plane-of-sky speeds of a few hundred to ~1500 km/s, hundreds to
+# thousands of SFU). Run:  interfsim run configs/dlite_moving_burst.toml
+name = "dlite_moving_burst"
+seed = 11
+integration_bins = 50
+
+[array]
+preset = "dlite"
+side = 8.0
+
+[observation]
+rstn_file = "data/rstn/learmonth/20-3-2025.txt"
+freq_mhz = 610
+site = "learmonth"
+time_mapping = "ut"
+n_samples = 50000
+
+[source]
+model = "disk"
+disk_n_across = 15
+
+[burst]
+enabled = true
+peak_ut = "04:30:00"              # near solar transit at Learmonth
+peak_flux_sfu = 1000.0
+rise_s = 120.0
+decay_s = 900.0
+start_r_rsun = 1.1
+pa_deg = 60.0                     # moving towards the north-east
+speed_km_s = 800.0
+fwhm_arcmin = 3.0
+n_across = 5
+search_radius_arcmin = 40.0
+subtract_quiet_sun = true
+track_threshold = 0.2
+
+[imaging]
+fov_deg = 3.0
+grid = 128
+forward_model_check = true
+
+[output]
+dir = "results/dlite_moving_burst"
+figures = true

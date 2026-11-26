@@ -19,6 +19,7 @@ from .array import (
                     triangle_center,
 )
 from .beam import GaussianBeam, IsotropicBeam, Mount, TabulatedBeam, load_beam
+from .burst import MovingBurst, burst_voltages, centroid_crb, track_centroid
 from .correlator import autocorrelate, correlate
 from .geometry import Observation, altaz_deg, antenna_phase, compute_uvw, enu_to_xyz, zenith_angle_deg
 from .imaging import forward_visibilities, make_dirty_image, sweep_layouts, synthesized_beam
@@ -31,6 +32,7 @@ __all__ = [
     "ArrayConfig", "cross", "from_enu", "from_file", "linear", "make_array", "preset_compact",
     "preset_cross4", "preset_dlite", "preset_extended", "random_2d", "tee", "triangle_center",
     "GaussianBeam", "IsotropicBeam", "Mount", "TabulatedBeam", "load_beam",
+    "MovingBurst", "burst_voltages", "centroid_crb", "track_centroid",
     "autocorrelate", "correlate",
     "Observation", "altaz_deg", "antenna_phase", "compute_uvw", "enu_to_xyz", "zenith_angle_deg",
     "forward_visibilities", "make_dirty_image", "sweep_layouts", "synthesized_beam",

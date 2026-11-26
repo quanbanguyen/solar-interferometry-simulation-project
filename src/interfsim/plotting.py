@@ -106,13 +106,45 @@ def plot_image_psf(res):
     return fig
 
 
+def plot_burst_track(res):
+    """Injected burst: light curve, true vs fitted position, and error vs Cramer-Rao bound."""
+    plt = _plt()
+    b = res.burst
+    am = np.pi / (180 * 60)
+    t = b["t_s"] / 60.0
+    fig, ax = plt.subplots(3, 1, figsize=(8, 8), sharex=True)
+    ax[0].plot(t, b["flux_sfu"], color="tab:orange")
+    ax[0].set_ylabel("Burst flux (SFU)")
+    if b["is_2d"].all():
+        for key, lab, col in (("l", "l (E)", "tab:blue"), ("m", "m (N)", "tab:green")):
+            ax[1].plot(t, b[f"{key}_true"] / am, color=col, label=f"{lab} true")
+            ax[1].plot(t, b[f"{key}_fit"] / am, ".", color=col, ms=4, label=f"{lab} fitted")
+    else:
+        along_true = b["axis"][:, 0] * b["l_true"] + b["axis"][:, 1] * b["m_true"]
+        ax[1].plot(t, along_true / am, color="tab:blue", label="true (projected on baselines)")
+        ax[1].plot(t, b["along_fit"] / am, ".", color="tab:blue", ms=4, label="fitted")
+    ax[1].set_ylabel("Offset from disk centre (arcmin)")
+    ax[1].legend(fontsize=8)
+    ax[2].semilogy(t, b["error_rad"] / am, ".", ms=4, label="centroid error")
+    ax[2].semilogy(t, b["crb_rad"] / am, "k-", lw=1, label="Cramer-Rao bound")
+    ax[2].set_ylabel("Error (arcmin)")
+    ax[2].set_xlabel("Minutes since start of track")
+    ax[2].legend(fontsize=8)
+    fig.suptitle(f"Burst centroid tracking - {res.array.summary()}", fontsize=9)
+    fig.tight_layout()
+    return fig
+
+
 def save_standard_figures(res, out_dir: str | Path) -> list[Path]:
     plt = _plt()
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     saved = []
     for name, fn in (("track", plot_track), ("visibilities", plot_visibilities),
-                     ("uv_coverage", plot_uv), ("image_psf", plot_image_psf)):
+                     ("uv_coverage", plot_uv), ("image_psf", plot_image_psf),
+                     ("burst_track", plot_burst_track)):
+        if name == "burst_track" and not res.burst:
+            continue
         fig = fn(res)
         p = out / f"{name}.png"
         fig.savefig(p, dpi=130, bbox_inches="tight")

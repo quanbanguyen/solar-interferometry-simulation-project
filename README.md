@@ -66,6 +66,7 @@ walks through the thesis cases, a layout comparison, and the van Cittert–Zerni
 | Imaging | direct-DFT dirty image (block-wise, low memory), PSF, optional flux-scaled output |
 | Metrics | main-lobe FWHM, side-lobe level, off-source dynamic range, u-v filling, baseline redundancy |
 | I/O | RSTN daily files (UT-aware), CSV export, fixed-point hex stimulus + metadata |
+| Bursts | moving burst source (light curve, radial motion, size); per-dump centroid tracking vs the Cramer-Rao bound |
 | Validation | Engine A ≡ Engine B; extended Sun reproduces the analytic jinc; offset point sources land on the right pixel |
 
 How it compares with Ansys HFSS/AEDT/PyAEDT and with radio-astronomy simulators (OSKAR, CASA,

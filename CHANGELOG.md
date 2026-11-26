@@ -2,6 +2,23 @@
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [SemVer](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- Moving solar burst model (`interfsim.burst`): rise/decay light curve, radial plane-of-sky motion
+  (speed in km/s, position angle), optional Gaussian extent; Engine A voltages and Engine B visibilities.
+- Burst-centroid tracking per correlator dump (point-source maximum likelihood, 1-D fit for collinear
+  arrays) and the Cramer-Rao bound, both at the simulated sample count and at the real B·tau.
+- `[burst]` config section, `configs/dlite_moving_burst.toml`, `burst_track.png` figure, `burst_*`
+  entries in `summary.json` and `products.npz`.
+- `geometry.antenna_phase` accepts per-sample (l, m) offsets.
+- Field data: reader for the GNU Radio `*_PSD.csv` recordings of the Vietnamese 610 MHz instrument
+  (`interfsim.io.field_psd`, CLI `interfsim field`), with UTC+7 -> UT conversion; seven 610 MHz days
+  converted to `data/field/hoa_lac_610MHz_psd/`.
+- `interfsim.validation.fit_effective_tsys` and `[comparison] field_csv`: effective system temperature
+  and 3-sigma detectable flux from the field light curve (roadmap P1); `configs/hoalac_field_20250320.toml`.
+- docs/FIELD_DATA.md: what the field recordings are, their known problems, first T_sys,eff results.
+
 ## [0.2.0] - 2026-11-03
 
 First packaged release; refactors the thesis notebook into the `interfsim` library.

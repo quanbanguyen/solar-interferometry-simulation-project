@@ -7,7 +7,7 @@ matters scientifically, and what "done" looks like (a test or a figure).
 
 | ID | Item | Why | Done when |
 |---|---|---|---|
-| P1 | **Run the field comparison at the Hoa Lac site** (`site = "hoa_lac"`) and replace the hand-read dB values with the raw receiver recording | Today the comparison mixes Learmonth geometry with Hoa Lac hardware and two numbers read off a PNG (AUDIT A4, A13) | `configs/hoalac_20250320.toml`; the measured excess is computed from data, with an error bar |
+| P1 | *(started: `interfsim field`, `validation.fit_effective_tsys`, docs/FIELD_DATA.md)* **Run the field comparison at the Hoa Lac site** (`site = "hoa_lac"`) and replace the hand-read dB values with the raw receiver recording | Today the comparison mixes Learmonth geometry with Hoa Lac hardware and two numbers read off a PNG (AUDIT A4, A13) | `configs/hoalac_20250320.toml`; the measured excess is computed from data, with an error bar |
 | P2 | **Uncertainty budget** for the solar excess: T_sys, beam model (NEC vs HFSS), pointing, cable loss, flux calibration (RSTN ±10–20 %) | Turns the 18.7× gap into "T_sys,eff = X ± Y K", a defensible measurement of the receiver | Monte Carlo over the config parameters; table in the paper |
 | P3 | **Multi-day statistics**: run all days in `data/rstn` against the `data/field` daily curves | One day is an anecdote; 40+ days are a result | Scatter plot of simulated vs measured excess across days |
 | P4 | **Cross-code validation** against pyuvsim or CASA `simobserve` for the same layout and point/disk source | Reviewers trust a simulator that agrees with established codes | Visibility difference < 1 % in a test |
@@ -22,7 +22,7 @@ matters scientifically, and what "done" looks like (a test or a figure).
 | E4 | **Calibration module**: per-antenna complex gains, delays (clock offsets: the Xuan Mai "fringe washing"), bandpass; solve with StEFCal using the Sun or a strong source | Directly models the hardware failure modes seen in the field campaign |
 | E5 | **Embedded element patterns / mutual coupling**: one beam per antenna, read from the 4NEC2 two-antenna runs (`data/antenna/nec_out/yagi_two_ant_d*.out.txt`) or HFSS finite-array exports | Quantifies coupling-induced imaging error versus spacing, a publishable small-array study |
 | E6 | **Multi-frequency / dynamic spectrum**: use all 8 RSTN channels, bandwidth smearing, multi-frequency synthesis | Solar radio bursts are spectral phenomena (type II/III drift) |
-| E7 | **Solar sky models**: limb-brightened disk, active regions, moving burst sources with position vs time | Enables "can this array locate a type III burst?" studies |
+| E7 | **Solar sky models**: limb-brightened disk, active regions. *Moving burst sources with position vs time: done (`interfsim.burst`, centroid tracking + Cramer-Rao bound)* | Enables "can this array locate a type III burst?" studies |
 | E8 | **Performance**: `numba` or GPU (CuPy) kernels for voltage synthesis and DFT; chunked streaming for 10⁸-sample voltage files | Real ADC rates (MS/s) instead of one sample per 0.76 s |
 | E9 | **RFI injection**: FM, TV, GNSS and satellite signals (and flagging tests) | 608–614 MHz is a protected radio-astronomy band; RFI is the dominant real-world issue |
 | E10 | **Ionospheric phase screens** (Kolmogorov, TID waves) | Relevant at 610 MHz on longer baselines; matches the DLITE science case |

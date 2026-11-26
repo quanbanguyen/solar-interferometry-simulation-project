@@ -1,4 +1,4 @@
-"""Command line interface: ``interfsim run|beam|rstn ...``."""
+"""Command line interface: ``interfsim run|beam|rstn|field ...``."""
 from __future__ import annotations
 
 import argparse
@@ -38,6 +38,16 @@ def _cmd_rstn(a) -> None:
         print(f"  written {d.to_csv(a.csv)}")
 
 
+def _cmd_field(a) -> None:
+    from .io.field_psd import read_psd_day
+    d = read_psd_day(a.folder, utc_offset_h=a.utc_offset)
+    ex = d.excess_db()
+    print(f"{a.folder}: {d.ut.size} files, {d.ut[0]} .. {d.ut[-1]} UT, centre {d.freq_center_mhz:.2f} MHz, "
+          f"peak excess {ex.max():.4f} dB")
+    if a.csv:
+        print(f"  written {d.to_csv(a.csv)}")
+
+
 def main(argv=None) -> None:
     p = argparse.ArgumentParser(prog="interfsim", description="Radio interferometer simulator")
     sp = p.add_subparsers(dest="cmd", required=True)
@@ -55,6 +65,11 @@ def main(argv=None) -> None:
     s.add_argument("file")
     s.add_argument("--csv")
     s.set_defaults(func=_cmd_rstn)
+    f = sp.add_parser("field", help="convert a folder of GNU Radio *_PSD.csv files to a UT light curve")
+    f.add_argument("folder")
+    f.add_argument("--csv")
+    f.add_argument("--utc-offset", type=float, default=7.0, help="recording clock minus UT [h] (Vietnam: 7)")
+    f.set_defaults(func=_cmd_field)
     a = p.parse_args(argv)
     a.func(a)
 
