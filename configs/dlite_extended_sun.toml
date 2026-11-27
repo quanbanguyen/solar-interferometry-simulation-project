@@ -1,0 +1,23 @@
+# DLITE-style triangle + centre with the Sun modelled as an extended disk.
+name = "dlite_extended_sun"
+seed = 7
+integration_bins = 50
+
+[array]
+preset = "dlite"
+side = 8.0
+
+[observation]
+rstn_file = "data/rstn/learmonth/20-3-2025.txt"
+freq_mhz = 610
+site = "learmonth"
+time_mapping = "ut"
+n_samples = 20000
+
+[source]
+model = "disk"
+disk_n_across = 15
+
+[output]
+dir = "results/dlite_extended_sun"
+figures = true

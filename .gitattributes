@@ -1,0 +1,11 @@
+* text=auto
+*.py text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+*.ipynb text eol=lf
+*.txt text
+*.npz binary
+*.png binary
+*.jpg binary
+*.pdf binary
+*.docx binary

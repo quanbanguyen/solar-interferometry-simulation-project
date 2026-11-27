@@ -1,5 +1,50 @@
-*.npz
-*.pkl
-Cell_H_Data/
-Cell_I_Data/
+# ── Python ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# ── Jupyter ─────────────────────────────────────────────
 .ipynb_checkpoints/
+
+# ── Simulation outputs (regenerate with `interfsim run`) ─
+results/
+*.pkl
+*.npz
+# ...except the antenna beams that the pipeline needs as input
+!data/antenna/beams/*.npz
+
+# ── LaTeX build products (thesis/) ──────────────────────
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.synctex.gz
+*.bak
+main_build.pdf
+
+# ── Local-only material: third-party code, copyrighted papers,
+#    duplicates and scratch files. See docs/REPOSITORY_LAYOUT.md.
+_archive/
+toolmophong_APSYNSIM_trengithub/
+
+# ── Editors / OS ────────────────────────────────────────
+.claude/settings.local.json
+Thumbs.db
+.DS_Store

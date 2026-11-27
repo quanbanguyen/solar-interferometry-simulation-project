@@ -1,0 +1,50 @@
+# Thesis Case 1: four-antenna E-W array, Learmonth 610 MHz flux of 2025-03-20.
+# Run:  interfsim run configs/thesis_case1_20250320.toml
+name = "thesis_case1_20250320"
+seed = 42
+integration_bins = 50            # samples per correlator dump
+
+[array]
+preset = "compact"               # compact | cross4 | dlite | extended, or type = "linear"/... (see array.make_array)
+spacing = 8.0
+
+[observation]
+rstn_file = "data/rstn/learmonth/20-3-2025.txt"
+freq_mhz = 610
+site = "learmonth"
+time_mapping = "ut"              # "ut": real solar hour angle; "stretch": thesis v1 mapping
+min_elevation_deg = 0.0
+n_samples = 50000
+
+[receiver]
+bw_hz = 1e6
+t_sys_k = 150.0
+r_load_ohm = 75.0
+pol_factor = 0.5                 # single linear polarisation; thesis v1 used 1.0
+
+[antenna]
+beam_file = "data/antenna/beams/UFRAME_primary_beam_610MHz.npz"
+boresight_axis = "+y"            # Yagi boom axis in the 4NEC2 model
+element_axis = "+x"
+pointing_el_deg = 90.0           # pointing at zenith
+element_az_deg = 0.0             # elements along N-S -> Sun's E-W path lies in the H-plane
+
+[source]
+model = "point"                  # "point" or "disk" (extended Sun, van Cittert-Zernike)
+
+[imaging]
+fov_deg = 3.0
+grid = 256
+forward_model_check = true
+
+[comparison]                     # Hoa Lac field measurement, 2025-03-20 (read off the daily power plot)
+enabled = true
+measured_noise_db = -32.062
+measured_peak_db = -32.036
+hour_angle_window_deg = 30.0
+
+[output]
+dir = "results/thesis_case1_20250320"
+fpga_hex = true
+fpga_bits = 16
+figures = true

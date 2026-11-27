@@ -1,0 +1,45 @@
+# Roadmap P1: simulate the Hoa Lac site on 2025-03-20 and fit the real 610 MHz field light curve
+# (Vietnamese amateur instrument, data/field/hoa_lac_610MHz_psd/) to get the effective system
+# temperature of the receiver. Run:  interfsim run configs/hoalac_field_20250320.toml
+name = "hoalac_field_20250320"
+seed = 42
+integration_bins = 50
+
+[array]
+preset = "compact"
+spacing = 8.0
+
+[observation]
+rstn_file = "data/rstn/learmonth/20-3-2025.txt"   # same Sun, measured in Australia
+freq_mhz = 610
+site = "hoa_lac"
+time_mapping = "ut"
+n_samples = 20000
+
+[receiver]
+bw_hz = 1e6
+t_sys_k = 150.0
+r_load_ohm = 75.0
+pol_factor = 0.5
+
+[antenna]
+beam_file = "data/antenna/beams/UFRAME_primary_beam_610MHz.npz"
+boresight_axis = "+y"
+element_axis = "+x"
+pointing_el_deg = 90.0
+element_az_deg = 0.0
+
+[source]
+model = "disk"
+
+[imaging]
+fov_deg = 3.0
+grid = 64
+forward_model_check = false
+
+[comparison]
+field_csv = "data/field/hoa_lac_610MHz_psd/2025-03-20.csv"
+
+[output]
+dir = "results/hoalac_field_20250320"
+figures = true
